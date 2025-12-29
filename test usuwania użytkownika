@@ -1,0 +1,13 @@
+import { test, expect } from '@playwright/test';
+
+test('DELETE - Usunięcie użytkownika', async ({ request }) => {
+    const response = await request.delete('https://jsonplaceholder.typicode.com/users/1');
+
+    // JSONPlaceholder zwraca 200 lub 204 przy DELETE
+    expect([200, 204]).toContain(response.status());
+
+    const bodyText = await response.text();
+
+    // JSONPlaceholder zwraca pustą odpowiedź przy DELETE
+    expect(bodyText === '' || bodyText === '{}').toBeTruthy();
+});
