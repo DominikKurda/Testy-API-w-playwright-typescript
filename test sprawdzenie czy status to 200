@@ -1,0 +1,16 @@
+import { test, expect } from '@playwright/test';
+
+test('GET - Fetch user data from API', async ({ request }) => {
+    const response = await request.get('https://jsonplaceholder.typicode.com/users/1');
+
+    // Sprawdzenie czy status = 200 OK
+    expect(response.status()).toBe(200);
+
+    // Pobranie danych w formacie JSON
+    const data = await response.json();
+
+    // Proste asercje
+    expect(data).toHaveProperty('id', 1);
+    expect(data).toHaveProperty('name');
+    expect(data).toHaveProperty('email');
+});
