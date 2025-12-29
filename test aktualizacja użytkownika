@@ -1,0 +1,20 @@
+import { test, expect } from '@playwright/test';
+
+test('PUT - Aktualizacja istniejącego użytkownika', async ({ request }) => {
+  const response = await request.put('https://jsonplaceholder.typicode.com/users/1', {
+    data: {
+      name: 'Zaktualizowany User',
+      email: 'nowy.email@example.com'
+    }
+  });
+
+  // Status 200 = poprawna aktualizacja
+  expect(response.status()).toBe(200);
+
+  const body = await response.json();
+
+  // Sprawdzenia odpowiedzi
+  expect(body).toHaveProperty('name', 'Zaktualizowany User');
+  expect(body).toHaveProperty('email', 'nowy.email@example.com');
+  expect(body).toHaveProperty('id', 1);
+});
