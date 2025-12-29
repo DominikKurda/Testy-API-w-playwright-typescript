@@ -1,0 +1,24 @@
+import { test, expect } from '@playwright/test';
+
+test('GET - Pobranie losowego użytkownika', async ({ request }) => {
+  const response = await request.get('https://randomuser.me/api/');
+
+  // Status odpowiedzi
+  expect(response.status()).toBe(200);
+
+  const body = await response.json();
+
+  // Sprawdzamy czy wyniki istnieją i są w tablicy
+  expect(body.results).toBeTruthy();
+  expect(Array.isArray(body.results)).toBeTruthy();
+  expect(body.results.length).toBeGreaterThan(0);
+
+  // Sprawdzenie struktury danych użytkownika
+  const user = body.results[0];
+
+  expect(user).toHaveProperty('name');
+  expect(user.name).toHaveProperty('first');
+  expect(user.name).toHaveProperty('last');
+
+  expect(user).toHaveProperty('email');
+});
