@@ -1,0 +1,21 @@
+import {expect, test} from "@playwright/test";
+
+test('POST - Create new user', async ({ request }) => {
+  const response = await request.post('https://jsonplaceholder.typicode.com/users', {
+    data: {
+      name: 'Jan Kowalski',
+      email: 'jan.kowalski@example.com'
+    }
+  });
+
+  // Sprawdzenie odpowiedzi
+  expect(response.status()).toBe(201);
+
+  const responseBody = await response.json();
+
+  expect(responseBody).toHaveProperty('name', 'Jan Kowalski');
+  expect(responseBody).toHaveProperty('email', 'jan.kowalski@example.com');
+
+  // JSONPlaceholder zwraca losowy ID
+  expect(responseBody).toHaveProperty('id');
+});
