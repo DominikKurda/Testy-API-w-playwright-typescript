@@ -1,0 +1,86 @@
+import { test, expect, APIRequestContext } from '@playwright/test';
+
+const BASE_URL = 'https://jsonplaceholder.typicode.com';
+
+// Typ danych komentarza
+type CommentPayload = {
+    postId: number;
+    name: string;
+    email: string;
+    body: string;
+};
+
+// Pomocnicza funkcja statusu
+function expectStatusIn(status: number, allowed: number[]) {
+    expect(
+        allowed.includes(status),
+        `Status ${status} nie jest jednym z dozwolonych: ${allowed.join(', ')}`
+    ).toBeTruthy();
+}
+
+// POST – tworzenie komentarza
+async function createComment(request: APIRequestContext, payload: CommentPayload) {
+    const response = await request.post(`${BASE_URL}/comments`, { data: payload });
+
+    expect(response.status()).toBe(201);
+
+    const body = await response.json();
+    expect(body).toHaveProperty('id');
+    return body;
+}
+
+// GET – pobieranie komentarza
+async function getComment(request: APIRequestContext, commentId: number) {
+    const response = await request.get(`${BASE_URL}/comments/${commentId}`);
+    expect(response.status()).toBe(200);
+
+    const body = await response.json();
+    expect(body).toHaveProperty('id', commentId);
+    return body;
+}
+
+// PATCH – aktualizacja komentarza
+async function updateCommentBody(request: APIRequestContext, commentId: number, newBody: string) {
+    const response = await request.patch(`${BASE_URL}/comments/${commentId}`, {
+        data: { body: newBody },
+    });
+
+    expect(response.status()).toBe(200);
+
+    const body = await response.json();
+    expect(body).toHaveProperty('body', newBody);
+
+    return body;
+}
+
+// DELETE – usunięcie komentarza
+async function deleteComment(request: APIRequestContext, commentId: number) {
+    const response = await request.delete(`${BASE_URL}/comments/${commentId}`);
+    expectStatusIn(response.status(), [200, 204]);
+    return response;
+}
+
+// -----------------------------------
+//  POZYTYWNY SCENARIUSZ KOMENTARZY
+// -----------------------------------
+
+test('API Comments – scenariusz pozytywny (CRUD)', async ({ request }) => {
+    // 1️⃣ POST - Tworzenie komentarza
+    const comment = await createComment(request, {
+        postId: 1,
+        name: 'Komentujący Test',
+        email: 'test@example.com',
+        body: 'Komentarz do testów API.',
+    });
+
+    const id = comment.id;
+
+    // 2️⃣ GET - Pobranie komentarza
+    await getComment(request, id);
+
+    // 3️⃣ PATCH - Aktualizacja komentarza
+    await updateCommentBody(request, id, 'Zaktualizowany komentarz.');
+
+    // 4️⃣ DELETE - Usunięcie komentarza
+    await deleteComment(request, id);
+});
