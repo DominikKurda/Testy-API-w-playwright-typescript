@@ -59,3 +59,30 @@ test('API - rozszerzony scenariusz CRUD użytkownika', async ({ request }) => {
     // spodziewalibyśmy się np. 404
     expect([200, 404]).toContain(getAfterDelete.status());
 });
+
+
+wyjaśnienie 
+
+Ten test automatyczny sprawdza kompletny cykl życia użytkownika w API (CRUD), czyli tworzenie, pobieranie, aktualizację i usuwanie danych użytkownika z systemu.
+
+Scenariusz przebiega następująco:
+
+POST – tworzenie użytkownika
+Test wysyła żądanie POST, które tworzy nowego użytkownika.
+Sprawdzany jest status odpowiedzi (201), czas odpowiedzi oraz to, czy zwrócone nagłówki wskazują na dane JSON. Z odpowiedzi pobierany jest identyfikator użytkownika (ID), który będzie używany w kolejnych krokach.
+
+GET – pobranie danych utworzonego użytkownika
+Test wysyła zapytanie GET do tego samego użytkownika i sprawdza, czy istnieje oraz czy dane zawierają wymagane pola.
+
+PATCH – częściowa aktualizacja danych
+Wysyłane jest żądanie PATCH aktualizujące jedynie adres e-mail użytkownika.
+Test potwierdza, że API zwróciło poprawną odpowiedź i że dane faktycznie zostały zmodyfikowane.
+
+DELETE – usunięcie użytkownika
+API otrzymuje komendę usunięcia użytkownika.
+Test sprawdza, czy odpowiedź oznacza sukces operacji.
+
+GET – sprawdzenie, że użytkownik nie istnieje (test negatywny)
+Na koniec wykonywane jest ponowne zapytanie GET.
+W prawdziwych API zwykle zwracany jest status 404 (Not Found).
+Ponieważ korzystamy z JSONPlaceholder, który nie usuwa danych naprawdę, test dopuszcza status 200 lub 404.
