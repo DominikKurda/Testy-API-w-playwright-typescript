@@ -1,0 +1,61 @@
+import { test, expect } from '@playwright/test';
+
+test('API - rozszerzony scenariusz CRUD użytkownika', async ({ request }) => {
+    // 1. POST – tworzymy nowego użytkownika
+    const createStart = Date.now();
+    const createResponse = await request.post('https://jsonplaceholder.typicode.com/users', {
+        data: {
+            name: 'Jan Testowy',
+            email: 'jan.testowy@example.com',
+            username: 'jan_test'
+        }
+    });
+    const createDuration = Date.now() - createStart;
+
+    // Sprawdzenie statusu i czasu odpowiedzi
+    expect(createResponse.status()).toBe(201);
+    expect(createDuration).toBeLessThan(2000); // max 2 sekundy
+
+    // Sprawdzenie nagłówków
+    const createHeaders = createResponse.headers();
+    expect(createHeaders['content-type']).toContain('application/json');
+
+    const createdUser = await createResponse.json();
+    expect(createdUser).toHaveProperty('id');
+    expect(createdUser).toHaveProperty('name', 'Jan Testowy');
+    const userId = createdUser.id;
+
+    // 2. GET – pobieramy stworzonego użytkownika
+    const getResponse = await request.get(`https://jsonplaceholder.typicode.com/users/${userId}`);
+
+    expect(getResponse.status()).toBe(200);
+    const getUser = await getResponse.json();
+
+    expect(getUser).toHaveProperty('id', userId);
+    expect(getUser).toHaveProperty('name');
+
+    // 3. PATCH – częściowa aktualizacja użytkownika
+    const patchResponse = await request.patch(`https://jsonplaceholder.typicode.com/users/${userId}`, {
+        data: {
+            email: 'nowy.email@test.pl'
+        }
+    });
+
+    expect(patchResponse.status()).toBe(200);
+    const patchedUser = await patchResponse.json();
+
+    expect(patchedUser).toHaveProperty('id', userId);
+    expect(patchedUser).toHaveProperty('email', 'nowy.email@test.pl');
+
+    // 4. DELETE – usuwamy użytkownika
+    const deleteResponse = await request.delete(`https://jsonplaceholder.typicode.com/users/${userId}`);
+
+    expect([200, 204]).toContain(deleteResponse.status());
+
+    // 5. GET po usunięciu – scenariusz negatywny
+    const getAfterDelete = await request.get(`https://jsonplaceholder.typicode.com/users/${userId}`);
+
+    // JSONPlaceholder nie usuwa naprawdę, ale przy prawdziwym API:
+    // spodziewalibyśmy się np. 404
+    expect([200, 404]).toContain(getAfterDelete.status());
+});
